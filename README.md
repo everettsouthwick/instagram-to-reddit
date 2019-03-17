@@ -1,2 +1,2 @@
-# bonus-redemption
-Automate the process of redeeming items with bonus points collected on trackers.
+# insta-reddit
+Automate the process of posting images from an Instagram account to a Subreddit.
