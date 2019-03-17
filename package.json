@@ -1,0 +1,29 @@
+{
+  "name": "insta-tay",
+  "version": "1.0.0",
+  "description": "Automate the process of scraping Taylor Swift's instagram and posting to reddit.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/everettsouthwick/bonus-redemption.git"
+  },
+  "author": "Everett Southwick",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/everettsouthwick/bonus-redemption/issues"
+  },
+  "homepage": "https://github.com/everettsouthwick/bonus-redemption#readme",
+  "dependencies": {
+    "better-sqlite3": "^5.4.0",
+    "emoji-aware": "^3.0.4",
+    "emoji-regex": "^8.0.0",
+    "emoji-unicode": "^1.0.10",
+    "fs": "0.0.1-security",
+    "request": "^2.88.0",
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "xregexp": "^4.2.4"
+  }
+}
