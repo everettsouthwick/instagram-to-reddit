@@ -70,4 +70,4 @@ chromedriver.exe
 *.db*
 
 # Images
-images/
+app/images/
