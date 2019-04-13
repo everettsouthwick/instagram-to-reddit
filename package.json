@@ -25,5 +25,9 @@
     "request": "^2.88.0",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "xregexp": "^4.2.4"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-google": "^0.12.0"
   }
 }
