@@ -60,6 +60,14 @@ typings/
 # next.js build output
 .next
 
+# Configuration files
 config.json
+
+# Chrome driver
 chromedriver.exe
-instatay.db*
+
+# Database files
+*.db*
+
+# Images
+images/
