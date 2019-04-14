@@ -38,6 +38,23 @@ async function buildDriver(headless = true) {
 }
 
 /**
+ * Cleans the specified date object.
+ * @param {Date} date The current object.
+ * @return {String} A clean date representation of the time.
+ */
+function cleanDate(date) {
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  let seconds = date.getSeconds();
+
+  (hours < 10) ? hours = '0' + hours : hours;
+  (minutes < 10) ? minutes = '0' + minutes : minutes;
+  (seconds < 10) ? seconds = '0' + seconds : seconds;
+
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+/**
  * Starts the application.
  * @param {Bool} persist Whether or not we should persist the WebDriver and the currentPosts.
  * @param {WebDriver} driver The Selenium WebDriver.
@@ -57,7 +74,13 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
   const postUris = await instagram.getPostRepresentations(driver, currentPosts);
 
   if (postUris.length < 1) {
-    console.log('No new posts found. Pausing for 15 seconds and re-checking.');
+    const date = new Date();
+    if (date.getMinutes() == 37) {
+      await driver.quit();
+      return console.log('Quitting application.');
+    }
+    const cleanedDate = cleanDate(date);
+    console.log(`${cleanedDate} - No new posts found. Pausing for 15 seconds and re-checking.`);
 
     await sleep(15000);
     await start(true, driver, currentPosts);

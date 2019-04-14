@@ -71,3 +71,6 @@ chromedriver.exe
 
 # Images
 app/images/
+
+# Logs
+insta-reddit.log*
