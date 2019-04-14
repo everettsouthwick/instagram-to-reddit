@@ -1,8 +1,9 @@
-const {Builder, By, until} = require('selenium-webdriver');
+const {By} = require('selenium-webdriver');
 const Post = require('./models/post');
 const request = require('request');
 const fs = require('fs');
 const emojiRegex = require('emoji-regex');
+const config = require('../config.json');
 
 module.exports = class Instagram {
   /**
@@ -19,10 +20,14 @@ module.exports = class Instagram {
    * @return {Array} List of all post URIs.
    */
   async getAllPostUris(driver, accountUri) {
+    if (config.verboseLogging) {
+      console.time(`Instagram.getAllPostUris()'`);
+    }
+
     const postUris = [];
 
     await driver.get(accountUri);
-    await sleep(1000);
+    await sleep(250);
 
     const allPostUris = await driver.findElements(By.css('a'));
 
@@ -33,21 +38,13 @@ module.exports = class Instagram {
       }
     }
 
+    if (config.verboseLogging) {
+      console.debug(`Instagram.getAllPostUris(): postUris.length - ${postUris.length}`);
+      console.timeEnd(`Instagram.getAllPostUris()'`);
+    }
+
     return postUris;
   }
-
-  // async getAllImageUris(driver) {
-  //   let imageUris = []
-
-  //   let allImageUris = await driver.findElements(By.className('FFVAD'))
-
-  //   for (let i = 0; i < allImageUris.length; i++) {
-  //     let src = await allImageUris[i].getAttribute('src')
-  //     imageUris.push(src)
-  //   }
-
-  //   return imageUris
-  // }
 
   /**
    * Gets all images associated with an Instagram post.
@@ -56,6 +53,10 @@ module.exports = class Instagram {
    * @return {Array} List of all image URIs.
    */
   async getImageUris(driver, postUri) {
+    if (config.verboseLogging) {
+      console.time(`Instagram.getImageUris()'`);
+    }
+
     const imageUris = [];
 
     await driver.get(postUri);
@@ -67,7 +68,30 @@ module.exports = class Instagram {
       imageUris.push(src);
     }
 
+    if (config.verboseLogging) {
+      console.debug(`Instagram.getImageUris(): imageUris.length - ${imageUris.length}`);
+      console.timeEnd(`Instagram.getImageUris()'`);
+    }
+
     return imageUris;
+  }
+
+  /**
+   * Gets all videos associated with an Instagram post.
+   * @param {WebDriver} driver Selenium web driver.
+   * @return {Array} List of all video URIs.
+   */
+  async getVideoUris(driver) {
+    const videoUris = [];
+
+    const allVideoUris = await driver.findElements(By.css('video.tWeCl'));
+
+    for (let i = 0; i < allVideoUris.length; i++) {
+      const src = await allVideoUris[i].getAttribute('src');
+      videoUris.push(src);
+    }
+
+    return videoUris;
   }
 
   /**
@@ -75,6 +99,10 @@ module.exports = class Instagram {
    * @param {Array} currentPosts An array of the Instagram posts that have already been posted to Reddit.
    */
   async getPostRepresentations(driver, currentPosts) {
+    if (config.verboseLogging) {
+      console.time(`Instagram.getPostRepresentations()'`);
+    }
+
     const posts = [];
     const postUris = await this.getAllPostUris(driver, this.accountUri);
 
@@ -82,10 +110,26 @@ module.exports = class Instagram {
       if (currentPosts.includes(postUris[i])) continue;
 
       const imageUris = await this.getImageUris(driver, postUris[i]);
-      const post = new Post(postUris[i], imageUris, imageUris.length > 1 ? true : false);
-      const title = await this.getTitle(driver);
-      post.title = title;
+
+      let post = undefined;
+
+      if (imageUris.length < 1) {
+        const videoUris = await this.getVideoUris(driver, postUris[i]);
+        post = new Post(postUris[i], videoUris, videoUris.length > 1 ? true : false);
+        const title = await this.getTitle(driver);
+        post.title = title;
+      } else {
+        post = new Post(postUris[i], imageUris, imageUris.length > 1 ? true : false);
+        const title = await this.getTitle(driver);
+        post.title = title;
+      }
+
       posts.push(post);
+    }
+
+    if (config.verboseLogging) {
+      console.debug(`Instagram.getPostRepresentations(): posts.length - ${posts.length}`);
+      console.timeEnd(`Instagram.getPostRepresentations()'`);
     }
 
     return posts;
@@ -95,23 +139,35 @@ module.exports = class Instagram {
    * @param {WebDriver} driver Selenium web driver.
    */
   async getTitle(driver) {
-    let description = await driver.getTitle();
-    description = await cleanDescription(description);
-
-    if (description.length <= 120 && description.length > 0) {
-      console.log(`Successfully got title: ${description}`);
-      return `"${description}"`;
+    if (config.verboseLogging) {
+      console.time(`Instagram.getTitle()'`);
     }
 
-    const genericTitle = await getGenericTitle();
-    console.log(`Successfully got title: ${genericTitle}`);
-    return genericTitle;
+    let title = await driver.getTitle();
+    title = await cleanTitle(title);
+
+    if (title.length <= 120 && title.length >= 3) {
+      title = `"${title}"`;
+    } else {
+      title = await getGenericTitle();
+    }
+
+    if (config.verboseLogging) {
+      console.debug(`Instagram.getTitle(): title - ${title}`);
+      console.timeEnd(`Instagram.getTitle()'`);
+    }
+
+    return title;
   }
 
   /**
    * @param {Array} posts An array of Instagram posts.
    */
   async downloadImages(posts) {
+    if (config.verboseLogging) {
+      console.time(`Instagram.downloadImages()'`);
+    }
+
     for (let i = 0; i < posts.length; i++) {
       if (posts[i].imageUris.length < 1) continue;
 
@@ -119,12 +175,15 @@ module.exports = class Instagram {
       await this.downloadImage(posts[i].imageUris[0], filePath);
       posts[i].filePath = filePath;
     }
+
+    if (config.verboseLogging) {
+      console.timeEnd(`Instagram.downloadImages()'`);
+    }
   }
 
   /**
    * @param {String} imageUri The URI of the image.
    * @param {String} filePath The file path the image will be downloaded to.
-   * 
    */
   async downloadImage(imageUri, filePath) {
     request.head(imageUri, function(err, res, body) {
@@ -148,49 +207,56 @@ async function sleep(ms) {
  */
 async function getFilePath(imageUri) {
   const random = Math.floor((Math.random() * 10000000) + 1000000);
-  const extension = (imageUri.includes('.png')) ? '.png' : '.jpg';
+
+  let extension = '.jpg';
+  if (imageUri.includes('.png')) {
+    extension = '.png';
+  } else if (imageUri.includes('.mp4')) {
+    extension = '.mp4';
+  }
+
   const filePath = `${__dirname}/images/${Date.now()}_${random}${extension}`;
   return filePath;
 }
 /**
- * @param {String} description The description of the post.
+ * @param {String} title The title of the post.
  */
-async function cleanDescription(description) {
-  description = description.substring(description.indexOf(':') + 2, description.length);
-  description = description.replace('“', '');
-  description = description.replace('”', '');
+async function cleanTitle(title) {
+  title = title.substring(title.indexOf(':') + 2, title.length);
+  title = title.replace('“', '');
+  title = title.replace('”', '');
 
   const emojis = emojiRegex();
-  description = description.replace(emojis, ' ');
+  title = title.replace(emojis, ' ');
   // Remove new line characters with one space.
-  description = description.replace(/\n/g, ' ');
+  title = title.replace(/\n/g, ' ');
   // Remove double+ spaces with a single space.
-  description = description.replace(/ {1,}/g, ' ');
-  description = description.trim();
+  title = title.replace(/ {1,}/g, ' ');
+  title = title.trim();
 
   // Get the last letter and if it is a punctuation we do not want to do anything to it.
-  let lastLetter = description[description.length - 1];
-  if (lastLetter === '.' || lastLetter === '!' || lastLetter === '?') return description;
+  let lastLetter = title[title.length - 1];
+  if (lastLetter === '.' || lastLetter === '!' || lastLetter === '?') return title;
 
-  // Remove all trailing mentions from the end of a description.
+  // Remove all trailing mentions from the end of a title.
   let repeat = true;
   while (repeat) {
-    const lastWord = description.substring(description.lastIndexOf(' ') + 1);
+    const lastWord = title.substring(title.lastIndexOf(' ') + 1);
     if (lastWord.includes('@')) {
-      description = description.substring(0, description.lastIndexOf(' '));
+      title = title.substring(0, title.lastIndexOf(' '));
     } else {
       repeat = false;
     }
   }
 
-  description = description.trim();
-  lastLetter = description[description.length - 1];
+  title = title.trim();
+  lastLetter = title[title.length - 1];
   if (lastLetter === ':') {
-    description = description.substring(0, description.length - 1);
-    description = description.trim();
+    title = title.substring(0, title.length - 1);
+    title = title.trim();
   }
 
-  return description;
+  return title;
 }
 
 /**
