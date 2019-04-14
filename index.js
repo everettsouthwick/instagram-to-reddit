@@ -75,7 +75,7 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
 
   if (postUris.length < 1) {
     const date = new Date();
-    if (date.getMinutes() == 37) {
+    if (date.getMinutes() == 37 && date.getSeconds() > 30) {
       await driver.quit();
       return console.log('Quitting application.');
     }

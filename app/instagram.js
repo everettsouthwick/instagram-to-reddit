@@ -146,7 +146,7 @@ module.exports = class Instagram {
     let title = await driver.getTitle();
     title = await cleanTitle(title);
 
-    if (title.length <= 120 && title.length >= 3) {
+    if (title.length <= 120 && title.length >= 5) {
       title = `"${title}"`;
     } else {
       title = await getGenericTitle();
