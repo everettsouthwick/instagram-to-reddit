@@ -4,7 +4,9 @@ Automate the process of posting images from an Instagram account to a Subreddit.
 ```json
 {
     "instagram": {
-        "accountUri": "https://www.instagram.com/instagramUsername/"
+        "accountUri": "https://www.instagram.com/instagramUsername/",
+        "maxTitleLength": 120,
+        "minTitleLength": 5
     },
     "reddit": {
         "username": "redditUsername",
