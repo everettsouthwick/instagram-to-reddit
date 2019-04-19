@@ -109,20 +109,16 @@ module.exports = class Instagram {
     for (let i = 0; i < postUris.length; i++) {
       if (currentPosts.includes(postUris[i])) continue;
 
-      const imageUris = await this.getImageUris(driver, postUris[i]);
-
-      let post = undefined;
+      let imageUris = await this.getImageUris(driver, postUris[i]);
 
       if (imageUris.length < 1) {
-        const videoUris = await this.getVideoUris(driver, postUris[i]);
-        post = new Post(postUris[i], videoUris, videoUris.length > 1 ? true : false);
-        const title = await this.getTitle(driver);
-        post.title = title;
-      } else {
-        post = new Post(postUris[i], imageUris, imageUris.length > 1 ? true : false);
-        const title = await this.getTitle(driver);
-        post.title = title;
+        imageUris = await this.getVideoUris(driver, postUris[i]);
       }
+
+      const title = await this.getTitle(driver);
+      const dateTime = await this.getDateTime(driver);
+
+      const post = new Post(postUris[i], imageUris, title, dateTime);
 
       posts.push(post);
     }
@@ -158,6 +154,26 @@ module.exports = class Instagram {
     }
 
     return title;
+  }
+
+  /**
+   * @param {WebDriver} driver Selenium web driver.
+   */
+  async getDateTime(driver) {
+    if (config.verboseLogging) {
+      console.time(`Instagram.getDateTime()'`);
+    }
+
+    const postDate = await driver.findElement(By.className('Nzb55'));
+    let dateTime = await postDate.getAttribute('datetime');
+    dateTime = new Date(dateTime);
+
+    if (config.verboseLogging) {
+      console.debug(`Instagram.getDateTime(): dateTime - ${dateTime}`);
+      console.timeEnd(`Instagram.getDateTime()'`);
+    }
+
+    return dateTime;
   }
 
   /**
@@ -264,14 +280,41 @@ async function cleanTitle(title) {
 async function getGenericTitle() {
   const options = [
     'New Instagram!',
+    'New Instagram!!',
+    'New instagram!',
     'New Instagram Post!',
-    'New Instagram from Taylor!',
+    'New Instagram Post!!',
+    'New instagram post!',
+    'New Instagram From Taylor!',
+    'New Instagram From Taylor!!',
+    'New instagram from Taylor!',
     'Newest Instagram Post!',
+    'Newest Instagram Post!!',
+    'Newest instagram post!',
     'Taylor\'s Instagram!',
-    'Brand new Insta!',
-    'New Instagram! :)',
+    'Taylor\'s Instagram!!',
+    'Taylor\'s instagram!',
+    'Brand New Insta!',
+    'Brand New Insta!!',
+    'Brand new insta!',
     'New Taylor Post!',
+    'New Taylor Post!!',
+    'New Taylor post!',
     'Taylor\'s Newest Post!',
+    'Taylor\'s Newest Post!!',
+    'Taylor\'s newest post!',
+    'New Insta!',
+    'New Insta!!',
+    'New insta!',
+    'New Post From Taylor!',
+    'New Post From Taylor!!',
+    'New post from Taylor!',
+    'Taylor\'s Insta!',
+    'Taylor\'s Insta!!',
+    'Taylor\'s insta!',
+    'New Taylor Insta!',
+    'New Taylor Insta!!',
+    'New Taylor insta!',
   ];
   const random = Math.floor((Math.random() * options.length));
   return options[random];

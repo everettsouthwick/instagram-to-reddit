@@ -73,16 +73,19 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
 
   const postUris = await instagram.getPostRepresentations(driver, currentPosts);
 
-  if (postUris.length < 1) {
-    const date = new Date();
-    if (date.getMinutes() == 37 && date.getSeconds() > 30) {
-      await driver.quit();
-      return console.log('Quitting application.');
-    }
-    const cleanedDate = cleanDate(date);
-    console.log(`${cleanedDate} - No new posts found. Pausing for 15 seconds and re-checking.`);
+  const date = new Date();
+  const cleanedDate = cleanDate(date);
 
-    await sleep(15000);
+  if (postUris.length < 1) {
+    if (date.getMinutes() == 37 && date.getSeconds() > 15) {
+      await driver.quit();
+      console.log(`${cleanedDate} Quitting application.`);
+      return;
+    }
+
+    console.log(`${cleanedDate} - No new posts found. Pausing for 30 seconds and re-checking.`);
+
+    await sleep(30000);
     await start(true, driver, currentPosts);
   }
 
@@ -97,11 +100,12 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
   await reddit.login(driver);
 
   for (let i = 0; i < postUris.length; i++) {
-    if (!postUris[i].filePath) {
+    if (!postUris[i].isPostable) {
       await db.logPost(postUris[i].postUri);
       continue;
     }
 
+    console.log(`${cleanedDate} - New post found. Posting to Reddit.`);
     await reddit.post(driver, postUris[i]);
     await db.logPost(postUris[i].postUri);
   }

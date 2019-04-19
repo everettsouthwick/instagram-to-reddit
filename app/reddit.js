@@ -44,7 +44,9 @@ module.exports = class Reddit {
     }
 
     await driver.get(this.subredditPostLink);
-    // Set the title text.
+    // 5 second delay to allow the image/video to download fully.
+    await sleep(5000);
+
     await driver.findElement(By.css('input#image')).sendKeys(post.filePath);
     await driver.findElement(By.css('textarea.title')).sendKeys(post.title);
 
@@ -57,6 +59,11 @@ module.exports = class Reddit {
     // } else {
     //   await postButton.click();
     // }
+
+    const random = Math.floor((Math.random() * 25000) + 15000);
+    const randInSeconds = Math.floor(random / 1000);
+    console.log(`Waiting for ${randInSeconds} seconds before submitting post.`);
+    await sleep(random);
 
     await postButton.click();
     await driver.wait(until.titleContains(post.title));
@@ -79,7 +86,10 @@ module.exports = class Reddit {
     }
 
     const comment = getComment(post.postUri);
-    const random = Math.floor((Math.random() * 20000) + 10000);
+
+    const random = Math.floor((Math.random() * 45000) + 15000);
+    const randInSeconds = Math.floor(random / 1000);
+    console.log(`Waiting for ${randInSeconds} seconds before commenting with the link.`);
     await sleep(random);
 
     await driver.findElement(By.css('textarea')).sendKeys(comment);
@@ -100,15 +110,20 @@ module.exports = class Reddit {
 async function getComment(postUri) {
   const options = [
     `Post Link: ${postUri}`,
+    `Post link: ${postUri}`,
+    `post link: ${postUri}`,
     `Source: ${postUri}`,
+    `source: ${postUri}`,
     `Sauce: ${postUri}`,
+    `sauce: ${postUri}`,
     `Link: ${postUri}`,
-    `Link to Post: ${postUri}`,
+    `link: ${postUri}`,
     `Taylor's Post: ${postUri}`,
-    `[Instagram Post](${postUri})`,
-    `[Source](${postUri})`,
-    `[Sauce](${postUri})`,
-    `[Taylor's Post](${postUri})`,
+    `Taylor's post: ${postUri}`,
+    `Insta: ${postUri}`,
+    `insta: ${postUri}`,
+    `Instagram: ${postUri}`,
+    `instagram: ${postUri}`,
   ];
   const random = Math.floor((Math.random() * options.length));
   return options[random];
