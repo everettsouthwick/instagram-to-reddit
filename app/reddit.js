@@ -44,26 +44,14 @@ module.exports = class Reddit {
     }
 
     await driver.get(this.subredditPostLink);
-    // 5 second delay to allow the image/video to download fully.
-    await sleep(5000);
+    // 1 second delay to allow the image/video to download fully.
+    await sleep(1000);
 
     await driver.findElement(By.css('input#image')).sendKeys(post.filePath);
     await driver.findElement(By.css('textarea.title')).sendKeys(post.title);
 
     const postButton = driver.findElement(By.xpath('//*[@id="newlink"]/div[4]/button'));
     await driver.wait(until.elementIsEnabled(postButton));
-
-    // if (this.debug) {
-    //   await driver.findElement(By.xpath('//*[@id="SHORTCUT_FOCUSABLE_DIV"]/div[2]/div/div/div/div[2]/div[3]/div[1]/div/div[3]/div[3]/div[2]/div/div[2]/button')).click();
-    //   await driver.findElement(By.xpath('//*[@id="SHORTCUT_FOCUSABLE_DIV"]/div[4]/div/div/section/footer/button[1]')).click();
-    // } else {
-    //   await postButton.click();
-    // }
-
-    const random = Math.floor((Math.random() * 25000) + 15000);
-    const randInSeconds = Math.floor(random / 1000);
-    console.log(`Waiting for ${randInSeconds} seconds before submitting post.`);
-    await sleep(random);
 
     await postButton.click();
     await driver.wait(until.titleContains(post.title));
@@ -87,7 +75,7 @@ module.exports = class Reddit {
 
     const comment = getComment(post.postUri);
 
-    const random = Math.floor((Math.random() * 45000) + 15000);
+    const random = Math.floor((Math.random() * 15000) + 15000);
     const randInSeconds = Math.floor(random / 1000);
     console.log(`Waiting for ${randInSeconds} seconds before commenting with the link.`);
     await sleep(random);

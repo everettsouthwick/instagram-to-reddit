@@ -77,15 +77,15 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
   const cleanedDate = cleanDate(date);
 
   if (postUris.length < 1) {
-    if (date.getMinutes() == 37 && date.getSeconds() > 15) {
+    if (date.getMinutes() == 37 && date.getSeconds() > 30) {
       await driver.quit();
       console.log(`${cleanedDate} Quitting application.`);
       return;
     }
 
-    console.log(`${cleanedDate} - No new posts found. Pausing for 30 seconds and re-checking.`);
+    console.log(`${cleanedDate} - No new posts found. Pausing for 25 seconds and re-checking.`);
 
-    await sleep(30000);
+    await sleep(25000);
     await start(true, driver, currentPosts);
   }
 
