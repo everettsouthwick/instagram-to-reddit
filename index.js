@@ -83,9 +83,9 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
       return;
     }
 
-    console.log(`${cleanedDate} - No new posts found. Pausing for 30 seconds and re-checking.`);
+    console.log(`${cleanedDate} - No new posts found. Pausing for 20 seconds and re-checking.`);
 
-    await sleep(30000);
+    await sleep(20000);
     await start(true, driver, currentPosts);
   }
 
