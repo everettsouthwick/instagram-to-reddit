@@ -38,27 +38,32 @@ function calculatePostable(post) {
   console.log(`${cleanedDate} - Post was ${diff} seconds ago.`);
 
   if (post.imageUris.length === 0) {
+    post.rejectReason = 'No valid images.';
     console.log(`${cleanedDate} - Post did not have any valid images.`);
     return false;
   }
 
   if (post.title.length === 0) {
+    post.rejectReason = 'No valid title.';
     console.log(`${cleanedDate} - Post did not have any valid title.`);
     return false;
   }
 
-  if (diff > 180) {
-    console.log(`${cleanedDate} - Post is older than 3 minutes.`);
+  if (diff >= 60) {
+    post.rejectReason = 'Older than 1 minute.';
+    console.log(`${cleanedDate} - Post is older than 1 minute.`);
     return false;
   }
 
   if (now.getHours() <= config.upperTimeLimit && now.getHours() >= config.lowerTimeLimit) {
+    post.rejectReason = 'Outside active hours.';
     console.log(`${cleanedDate} - Post was outside of active hours.`);
   }
 
   if (!post.isVideo) {
-    const random = Math.floor((Math.random() * 3) + 1);
-    if (random === 3) {
+    const random = Math.floor((Math.random() * 4) + 1);
+    if (random === 1) {
+      post.rejectReason = 'Random failure chance.';
       console.log(`${cleanedDate} - Post was randomly selected to not be posted.`);
       return false;
     }

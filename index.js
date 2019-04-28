@@ -60,6 +60,8 @@ function cleanDate(date) {
  * @param {Post} post The Instagram post.
  */
 function discordNotification(post) {
+  if (post.rejectReason === 'Older than 1 minute.') return;
+
   if (config.debug) {
     config.discord.webhookUri = 'https://discordapp.com/api/webhooks/552939534833287177/Prq5TOBlMrrMXoBwPaMjhjcHMS942K0IF5yiNIrEeda3ZTNSS4rgNyNLOTzSy7sQwp5a';
     config.discord.alertUserId = '191416826788446208';
@@ -67,13 +69,13 @@ function discordNotification(post) {
 
   const Hook = new webhook.Webhook(config.discord.webhookUri);
 
-  let msg = new webhook.MessageBuilder()
+  const msg = new webhook.MessageBuilder()
       .setName('taylorswift')
       .setColor('#ffd1dc')
       .setTitle(`${post.title}`)
       .setText(`<@${config.discord.alertUserId}> An Instagram post for you.`)
       .setDescription(`${post.postUri}`)
-      .addField('Posting', `${post.isPostable}`)
+      .addField('Reject Reason', `${post.rejectReason}`)
       .setImage(`${post.imageUris[0]}`)
       .setTime();
 
@@ -102,8 +104,14 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
   const date = new Date();
   const cleanedDate = cleanDate(date);
 
+  if (date.getHours() <= config.upperTimeLimit && date.getHours() >= config.lowerTimeLimit) {
+    await driver.quit();
+    console.log(`${cleanedDate} - Quitting application because it is outside of active hours.`);
+    return;
+  }
+
   if (postUris.length < 1) {
-    if (date.getMinutes() == 37 && date.getSeconds() >= 25) {
+    if (date.getMinutes() == 37 && date.getSeconds() >= 45) {
       await driver.quit();
       console.log(`${cleanedDate} - Quitting application.`);
       return;
@@ -127,7 +135,7 @@ async function start(persist = false, driver = undefined, currentPosts = []) {
 
   for (let i = 0; i < postUris.length; i++) {
     if (!postUris[i].isPostable) {
-      discordNotification(postUris[i]);
+      await discordNotification(postUris[i]);
       await db.logPost(postUris[i].postUri);
       continue;
     }
