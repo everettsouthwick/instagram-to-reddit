@@ -107,18 +107,20 @@ module.exports = class Instagram {
     const postUris = await this.getAllPostUris(driver, this.accountUri);
 
     for (let i = 0; i < postUris.length; i++) {
-      if (currentPosts.includes(postUris[i])) continue;
+      if (currentPosts.includes(postUris[i]) && !config.debug) continue;
 
+      let isVideo = false;
       let imageUris = await this.getImageUris(driver, postUris[i]);
 
       if (imageUris.length < 1) {
         imageUris = await this.getVideoUris(driver, postUris[i]);
+        isVideo = true;
       }
 
       const title = await this.getTitle(driver);
       const dateTime = await this.getDateTime(driver);
 
-      const post = new Post(postUris[i], imageUris, title, dateTime);
+      const post = new Post(postUris[i], imageUris, title, dateTime, isVideo);
 
       posts.push(post);
     }
@@ -139,13 +141,24 @@ module.exports = class Instagram {
       console.time(`Instagram.getTitle()'`);
     }
 
-    let title = await driver.getTitle();
-    title = await cleanTitle(title);
+    let description = await driver.findElement(By.css('div.C4VMK span'));
+    description = await description.getText();
+    let title = await cleanTitle(description);
 
-    if (title.length <= this.maxTitleLength && title.length >= this.minTitleLength) {
+    // If the title is greater than 60 characters we want to put it in quotes.
+    if (title.length >= 50) {
       title = `"${title}"`;
     } else {
-      title = await getGenericTitle();
+      title = `${title}`;
+    }
+
+    if (title.length <= this.minTitleLength && title.length >= 1) {
+      const genericTitle = await getGenericTitle();
+      title = `${title} - ${genericTitle}`;
+    }
+
+    if (title.length === 0 || title.length >= title.maxTitleLength) {
+      title = '';
     }
 
     if (config.verboseLogging) {
@@ -238,7 +251,6 @@ async function getFilePath(imageUri) {
  * @param {String} title The title of the post.
  */
 async function cleanTitle(title) {
-  title = title.substring(title.indexOf(':') + 2, title.length);
   title = title.replace('“', '');
   title = title.replace('”', '');
 
@@ -250,27 +262,37 @@ async function cleanTitle(title) {
   title = title.replace(/ {1,}/g, ' ');
   title = title.trim();
 
-  // Get the last letter and if it is a punctuation we do not want to do anything to it.
-  let lastLetter = title[title.length - 1];
-  if (lastLetter === '.' || lastLetter === '!' || lastLetter === '?') return title;
-
-  // Remove all trailing mentions from the end of a title.
+  // Remove all trailing paranthesis from the end of a title.
   let repeat = true;
   while (repeat) {
     const lastWord = title.substring(title.lastIndexOf(' ') + 1);
-    if (lastWord.includes('@')) {
-      title = title.substring(0, title.lastIndexOf(' '));
+    if (lastWord.includes(')')) {
+      title = title.replace(/(\(.*?\))/, '');
     } else {
       repeat = false;
     }
   }
 
+  // Remove trailing colons.
   title = title.trim();
   lastLetter = title[title.length - 1];
   if (lastLetter === ':') {
     title = title.substring(0, title.length - 1);
     title = title.trim();
   }
+
+  if (title.length >= 140) {
+    let indexPeriod = title.indexOf('.', 70);
+    let indexExclamation = title.indexOf('!', 70);
+    let indexQuestion = title.indexOf('?', 70);
+    if (indexPeriod === -1) indexPeriod = 999;
+    if (indexExclamation === -1) indexExclamation = 999;
+    if (indexQuestion === -1) indexQuestion = 999;
+
+    title = title.substring(0, Math.min(indexPeriod, indexExclamation, indexQuestion) + 2);
+  }
+
+  title = title.trim();
 
   return title;
 }
