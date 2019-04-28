@@ -109,7 +109,9 @@ module.exports = class SqlRepository {
       const stmt = this.db.prepare('INSERT INTO `instagramPosts` (`postUri`, `posted`) VALUES (?, ?)');
       const info = stmt.run(postUri, 1);
       if (info.changes === 1) {
-        console.log(`Successfully logged post for (${postUri}).`);
+        const date = new Date();
+        const cleanedDate = cleanDate(date);
+        console.log(`${cleanedDate} - Successfully logged post for (${postUri}).`);
       }
     }
 
@@ -120,3 +122,20 @@ module.exports = class SqlRepository {
     };
   }
 };
+
+/**
+ * Cleans the specified date object.
+ * @param {Date} date The current object.
+ * @return {String} A clean date representation of the time.
+ */
+function cleanDate(date) {
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  let seconds = date.getSeconds();
+
+  (hours < 10) ? hours = '0' + hours : hours;
+  (minutes < 10) ? minutes = '0' + minutes : minutes;
+  (seconds < 10) ? seconds = '0' + seconds : seconds;
+
+  return `${hours}:${minutes}:${seconds}`;
+}
