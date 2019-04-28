@@ -6,7 +6,7 @@ module.exports = class Reddit {
    * @param {Json} options Json representation of the model.
    */
   constructor(options = {}) {
-    if (options.debug) {
+    if (config.debug) {
       options.subredditPostLink = 'https://www.reddit.com/r/nerdsagainstbullying/submit';
     }
     Object.assign(this, options);
@@ -44,8 +44,8 @@ module.exports = class Reddit {
     }
 
     await driver.get(this.subredditPostLink);
-    // 1 second delay to allow the image/video to download fully.
-    await sleep(1000);
+    // 25 second delay to allow the image/video to download fully.
+    if (!config.debug) await sleep(25000);
 
     await driver.findElement(By.css('input#image')).sendKeys(post.filePath);
     await driver.findElement(By.css('textarea.title')).sendKeys(post.title);
@@ -53,14 +53,16 @@ module.exports = class Reddit {
     const postButton = driver.findElement(By.xpath('//*[@id="newlink"]/div[4]/button'));
     await driver.wait(until.elementIsEnabled(postButton));
 
-    await postButton.click();
-    await driver.wait(until.titleContains(post.title));
-
-    if (config.verboseLogging) {
-      console.timeEnd(`Reddit.post()'`);
+    // 25 second delay to allow the image/video to upload fully.
+    await sleep(25000);
+    if (!config.debug) {
+      await postButton.click();
+      await driver.wait(until.titleContains(post.title));
+      if (config.verboseLogging) {
+        console.timeEnd(`Reddit.post()'`);
+      }
+      await this.postLink(driver, post);
     }
-
-    await this.postLink(driver, post);
   }
 
   /**
@@ -73,16 +75,19 @@ module.exports = class Reddit {
       console.time(`Reddit.postLink()'`);
     }
 
-    const comment = getComment(post.postUri);
+    const comment = await getComment(post.postUri);
 
     const random = Math.floor((Math.random() * 15000) + 15000);
     const randInSeconds = Math.floor(random / 1000);
-    console.log(`Waiting for ${randInSeconds} seconds before commenting with the link.`);
+
+    const date = new Date();
+    const cleanedDate = cleanDate(date);
+    console.log(`${cleanedDate} Waiting for ${randInSeconds} seconds before commenting with "${comment}".`);
     await sleep(random);
 
     await driver.findElement(By.css('textarea')).sendKeys(comment);
     await driver.findElement(By.css('button.save')).click();
-    await sleep(2500);
+    await sleep(5000);
 
     if (config.verboseLogging) {
       console.timeEnd(`Reddit.postLink()'`);
@@ -123,4 +128,21 @@ async function getComment(postUri) {
  */
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Cleans the specified date object.
+ * @param {Date} date The current object.
+ * @return {String} A clean date representation of the time.
+ */
+function cleanDate(date) {
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  let seconds = date.getSeconds();
+
+  (hours < 10) ? hours = '0' + hours : hours;
+  (minutes < 10) ? minutes = '0' + minutes : minutes;
+  (seconds < 10) ? seconds = '0' + seconds : seconds;
+
+  return `${hours}:${minutes}:${seconds}`;
 }
