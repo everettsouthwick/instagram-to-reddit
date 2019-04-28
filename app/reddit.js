@@ -44,8 +44,8 @@ module.exports = class Reddit {
     }
 
     await driver.get(this.subredditPostLink);
-    // 25 second delay to allow the image/video to download fully.
-    if (!config.debug) await sleep(25000);
+    // 30 second delay to allow the image/video to download fully.
+    if (!config.debug) await sleep(30000);
 
     await driver.findElement(By.css('input#image')).sendKeys(post.filePath);
     await driver.findElement(By.css('textarea.title')).sendKeys(post.title);
@@ -53,8 +53,8 @@ module.exports = class Reddit {
     const postButton = driver.findElement(By.xpath('//*[@id="newlink"]/div[4]/button'));
     await driver.wait(until.elementIsEnabled(postButton));
 
-    // 25 second delay to allow the image/video to upload fully.
-    await sleep(25000);
+    // 30 second delay to allow the image/video to upload fully.
+    await sleep(30000);
     if (!config.debug) {
       await postButton.click();
       await driver.wait(until.titleContains(post.title));
