@@ -1,22 +1,14 @@
-# insta-reddit
-Automate the process of posting images from an Instagram account to a Subreddit.
+# instagram-to-reddit
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightscreen.svg)
 
-```json
-{
-    "instagram": {
-        "accountUri": "https://www.instagram.com/instagramUsername/",
-        "maxTitleLength": 120,
-        "minTitleLength": 5
-    },
-    "reddit": {
-        "username": "redditUsername",
-        "password": "redditPassword",
-        "subredditPostLink": "https://www.reddit.com/r/subredditName/submit",
-        "debug": false
-    },
-    "database": {
-        "databaseName": "databaseName.db"
-    },
-    "verboseLogging": false
-}
-```
+This script scrapes Instagram accounts for new posts and uploads the pictures/videos to a subreddit of your choosing.
+
+## Dependencies
+
+- [Node.js](https://nodejs.org/)
+- Chrome or Firefox desktop browser installed
+
+## Getting Started
+1. Clone or download the project
+2. Copy [`config.json.example`](config.json.example) to `config.json` and modify it with your details
+3. Execute `npm install && npm run build && npm start`
