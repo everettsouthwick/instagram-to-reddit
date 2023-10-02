@@ -28,7 +28,7 @@
     "xregexp": "^4.2.4"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
+    "eslint": "^8.0.0",
     "eslint-config-google": "^0.12.0"
   }
 }
