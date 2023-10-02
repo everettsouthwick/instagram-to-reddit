@@ -19,7 +19,7 @@
   "dependencies": {
     "better-sqlite3": "^5.4.0",
     "emoji-aware": "^3.0.4",
-    "emoji-regex": "^8.0.0",
+    "emoji-regex": "^10.0.0",
     "emoji-unicode": "^1.0.10",
     "fs": "0.0.1-security",
     "request": "^2.88.0",
